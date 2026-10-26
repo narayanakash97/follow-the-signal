@@ -21,10 +21,22 @@ export function say(text: string) {
   el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
 }
 
+/** Opens a document in the centre of the screen. Body may be HTML we wrote ourselves. */
+export function read(title: string, body: string) {
+  const el = $('doc');
+  $('doc-title').textContent = title;
+  $('doc-body').innerHTML = body;
+  el.hidden = false;
+  el.classList.remove('open'); void el.offsetWidth; el.classList.add('open');
+}
+export function closeRead() { $('doc').hidden = true; }
+export const reading = () => !$('doc').hidden;
+
 export const cardOpen = () => !$('card').hidden || !$('end').hidden;
 
 /** Shows a story card and hands the keyboard to it until Enter or Escape. */
 export function card(stage: Stage, onClose: () => void) {
+  closeRead();
   const prev = input.handler;
   input.left = input.right = false;
   $('card-title').textContent = stage.title;

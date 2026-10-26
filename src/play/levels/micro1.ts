@@ -7,10 +7,10 @@ import * as hud from '../hud';
 // micro1, kept short: compare two AI voice clips and explain the call.
 type Step = { ask: string; options: string[]; answer: number; right: string; wrong: string };
 const steps: Step[] = [
-  { ask: 'Which clip sounds more natural?', options: ['clip A', 'clip B'], answer: 0,
-    right: 'Clip A. Now say why, so the call can be checked.', wrong: 'Listen again, or look at the middle of B\'s waveform.' },
-  { ask: 'What is wrong with clip B?', options: ['its pitch jumps mid-phrase', 'it is too quiet'], answer: 0,
-    right: 'Right: B leaps in pitch in the middle. Feedback written and submitted.', wrong: 'B is loud enough. Look at what happens in the middle of its waveform.' },
+  { ask: 'Which clip sounds more natural?', options: ['clip A', 'clip B'], answer: 1,
+    right: 'Clip B. Now say why, so the call can be checked.', wrong: 'Listen again, or look at the middle of A\'s waveform.' },
+  { ask: 'What is wrong with clip A?', options: ['its pitch jumps mid-phrase', 'it is too quiet'], answer: 0,
+    right: 'Right: A leaps in pitch in the middle. Feedback written and submitted.', wrong: 'A is loud enough. Look at what happens in the middle of its waveform.' },
 ];
 
 export class Micro1Level extends Room {
@@ -33,8 +33,8 @@ export class Micro1Level extends Room {
   }
 
   protected use(id: string) {
-    if (id === 'a') { void audio.voice('clean'); return hud.say('Clip A plays.'); }
-    if (id === 'b') { void audio.voice('glitch'); return hud.say('Clip B plays.'); }
+    if (id === 'a') { void audio.voice('glitch'); return hud.say('Clip A plays.'); }
+    if (id === 'b') { void audio.voice('clean'); return hud.say('Clip B plays.'); }
     hud.say('Answer with the number keys.');
   }
 
@@ -54,8 +54,8 @@ export class Micro1Level extends Room {
     g.fillStyle(0x8fb3d9).fillRect(186, 14, 40, 26);
     g.fillStyle(0x5a6a7a).fillRect(186, 32, 40, 8);
     g.fillStyle(0x6b4a30).fillRect(0, FLOOR, ROOM_W, 30);
-    // Two waveform panels: A steady, B with a jump.
-    for (const [x, kind] of [[70, 'clean'], [150, 'glitch']] as const) {
+    // Two waveform panels: A with a jump, B steady.
+    for (const [x, kind] of [[70, 'glitch'], [150, 'clean']] as const) {
       g.fillStyle(0x0f1418).fillRect(x - 23, 70, 46, 26);
       g.lineStyle(1, 0x6fc7d6).beginPath();
       const len = 40;

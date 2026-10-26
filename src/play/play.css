@@ -25,3 +25,21 @@ body { font: 18px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans
 #to-portfolio { pointer-events: auto; display: inline-block; background: #9a5b14; color: #fff; font-weight: 700;
   text-decoration: none; padding: 12px 20px; border-radius: 8px; }
 #to-portfolio:hover { background: #7d4a10; }
+
+/* A document you read: opens in the centre like an unfolding sheet. */
+#doc { position: absolute; top: 46%; left: 50%; width: min(560px, 80vw); transform: translate(-50%, -50%);
+  padding: 24px 28px; background: #fbf8ef; color: #22201c; border-radius: 6px; border-top: 6px solid #9a5b14;
+  box-shadow: 0 14px 40px rgb(0 0 0 / 0.55); font-size: 20px; line-height: 1.45; transform-origin: 50% 0; }
+#doc h2 { margin: 0 0 10px; font-size: 22px; }
+#doc.open { animation: unfold 0.38s cubic-bezier(.2, .9, .3, 1.15); }
+@keyframes unfold {
+  from { transform: translate(-50%, -50%) scaleY(0.04) scaleX(0.7); opacity: 0; }
+  55% { transform: translate(-50%, -50%) scaleY(1.03) scaleX(0.98); opacity: 1; }
+  to { transform: translate(-50%, -50%) scale(1); }
+}
+/* Live RF screen in COP28: one bar per podium. */
+.rf { display: flex; gap: 10px; align-items: flex-end; height: 160px; background: #0f1418; padding: 12px; border-radius: 4px; }
+.rf div { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; color: #f1eee5; font-weight: 700; }
+.rf i { display: block; width: 100%; background: #6fc7d6; border-radius: 2px 2px 0 0; }
+.rf i.hot { background: #e0483e; }
+.rf i.safe { background: #7fd18b; }

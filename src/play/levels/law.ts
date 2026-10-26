@@ -4,25 +4,22 @@ import { Room, FLOOR, ROOM_W, type Spot } from '../room';
 import * as hud from '../hud';
 
 // Supreme Court records room. A fictional copyright claim, six exhibits, two of which break it.
-const claim = 'The claim (fictional): "Our client wrote this song alone and first released it in 2019. The other track came out in 2020 and copied it."';
-const exhibits: Record<string, string> = {
-  a: 'Exhibit A, studio invoice: mixing sessions for the client\'s song, March 2019.',
-  b: 'Exhibit B, archived streaming page: the client\'s song, published June 2019.',
-  c: 'Exhibit C, label release sheet: the other track\'s official release, February 2020.',
-  d: 'Exhibit D, original liner notes: the client\'s song credited to the client and a second songwriter.',
-  e: 'Exhibit E, client\'s email from 2021: "I heard the other track for the first time last year."',
-  f: 'Exhibit F, radio station log: the other track played on air in November 2018.',
+const claim = 'Our client first released this song in 2019. The other track came out in 2020, so it copied ours.';
+const exhibits: Record<string, [string, string]> = {
+  a: ['Exhibit A: studio invoice', 'Mixing sessions for the client\'s song, billed in March 2019.'],
+  b: ['Exhibit B: streaming page', 'The client\'s song, first published in June 2019.'],
+  c: ['Exhibit C: radio station log', 'The other track was played on air in November 2018.'],
 };
-const CONTRADICTIONS = ['d', 'f'];
+const CONTRADICTION = 'c';
 
 export class LawLevel extends Room {
   stage = stages.find(s => s.id === 'law')!;
-  intro = 'Supreme Court of India. The hearing starts in 60 seconds. Two exhibits break the claim on the wall. Read, flag them with F, then present them at the bench.';
-  limit = 60_000;
+  intro = 'Supreme Court of India. The hearing starts in 45 seconds. One exhibit breaks the claim on the wall. Read them, flag it with F, then present it at the bench.';
+  limit = 45_000;
   outOfTime = 'The hearing started before the brief was ready.';
   spots: Spot[] = [
     { id: 'claim', x: 26, label: 'The claim', markerY: 66 },
-    ...'abcdef'.split('').map((id, i) => ({ id, x: 66 + i * 34, label: `Exhibit ${id.toUpperCase()}`, markerY: 92 })),
+    ...'abc'.split('').map((id, i) => ({ id, x: 90 + i * 60, label: `Exhibit ${id.toUpperCase()}`, markerY: 92 })),
     { id: 'bench', x: 282, label: 'The bench', markerY: 80 },
   ];
   private flagged = new Set<string>();
@@ -34,23 +31,21 @@ export class LawLevel extends Room {
 
   protected hint(s: Spot) {
     if (s.id in exhibits) return `${s.label} · E read · F ${this.flagged.has(s.id) ? 'unflag' : 'flag'}`;
-    if (s.id === 'bench') return `The bench · E present ${this.flagged.size} flagged exhibit${this.flagged.size === 1 ? '' : 's'}`;
+    if (s.id === 'bench') return `The bench · E present your flagged exhibit (${this.flagged.size} flagged)`;
     return super.hint(s);
   }
 
   protected use(id: string) {
-    if (id === 'claim') return hud.say(claim);
-    if (id !== 'bench') return hud.say(exhibits[id]);
-    const wrong = [...this.flagged].filter(f => !CONTRADICTIONS.includes(f)).length;
-    const missed = CONTRADICTIONS.filter(c => !this.flagged.has(c)).length;
-    if (!wrong && !missed) {
+    if (id === 'claim') return hud.read('The claim (a fictional case)', `"${claim}"`);
+    if (id !== 'bench') return hud.read(...exhibits[id]);
+    if (this.flagged.size === 1 && this.flagged.has(CONTRADICTION)) {
       this.over = true;
-      hud.say(`Two contradictions, ${Math.ceil(this.left / 1000)}s to spare. D: the song had a co-writer, so not "alone". F: the other track was on air in 2018, before the client\'s song existed.`);
+      hud.say(`Exhibit C, with ${Math.ceil(this.left / 1000)}s to spare. The other track was on air in 2018, before the client's song existed. It can't have copied it.`);
       return void this.time.delayedCall(2600, () => this.finish());
     }
     this.penalty(10_000);
-    hud.say([wrong && `${wrong} of your flags ${wrong === 1 ? 'does' : 'do'} not contradict the claim.`, missed && `You have missed ${missed}.`]
-      .filter(Boolean).join(' ') + ' The judge is waiting: minus 10 seconds.');
+    const wrong = [...this.flagged].filter(f => f !== CONTRADICTION);
+    hud.say((wrong.length ? `Exhibit ${wrong[0].toUpperCase()} fits the claim. Flag only the one that breaks it.` : 'Nothing flagged yet.') + ' The judge is waiting: minus 10 seconds.');
   }
 
   protected choose(key: string) {

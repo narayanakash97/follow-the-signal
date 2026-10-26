@@ -11,10 +11,10 @@ const stage = stages.find(s => s.id === 'squarewave')!;
 let state = initialState();
 let near: Station | null = null;
 
-const primary: Record<Exclude<Station, 'desk'>, Action> = { brief: 'read', fan: 'fan', window: 'quiet', mic: 'record', power: 'ground' };
+const primary: Record<Exclude<Station, 'desk'>, Action> = { brief: 'read', fan: 'fan', window: 'quiet', mic: 'record' };
 const labels: Record<Station, string> = {
   brief: 'Client brief · E', fan: 'Fan · E switch', window: 'Window onto the building site · E talk to the crew',
-  mic: 'Mic booth · E record', power: 'Power strip · E re-plug the desk and preamp onto it',
+  mic: 'Mic booth · E record',
   desk: 'Mixing desk · 1 listen back · 2 clean up in post · 3 deliver',
 };
 
@@ -26,10 +26,11 @@ export const studio = new StudioScene({
     input.handler = onKey;
     hud.where(stage);
     hud.prompt(WALK);
-    hud.say('Square Wave Studios. A client needs a clean speech recording. Read the brief, then listen for everything that could ruin it.');
+    hud.say('Square Wave Studios. A client needs a clean speech recording. Read the brief on the wall first.');
   },
   near(station) {
     near = station;
+    hud.closeRead();
     hud.prompt(station ? labels[station] : WALK);
   },
   door(at) { hud.prompt(at ? 'E: leave by the door' : WALK); },
@@ -37,16 +38,17 @@ export const studio = new StudioScene({
   use(station) {
     if (station === 'desk') return listen();
     run(primary[station]);
-    if (station === 'brief') hud.say(`${brief} Now look around the room.`);
+    if (station === 'brief') { hud.read('Client brief', brief); hud.say('Now look around the room.'); }
   },
 });
 
 const WALK = '← → walk · E use · the door on the right leads back to the street';
 
-function leave() { audio.stop(); studio.scene.start('world', { x: stage.x }); }
+function leave() { hud.closeRead(); audio.stop(); studio.scene.start('world', { x: stage.x }); }
 
 function onKey(key: string) {
   if (key === 'Escape') leave();
+  else if ((key === 'e' || key === 'Enter') && hud.reading()) hud.closeRead();
   else if (key === 'e' || key === 'Enter') studio.interact();
   else if (near === 'desk' && key === '1') listen();
   else if (near === 'desk' && key === '2') run('process');

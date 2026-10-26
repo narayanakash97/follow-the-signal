@@ -51,6 +51,7 @@ export abstract class Room extends Phaser.Scene {
     input.handler = key => {
       if (key === 'Escape') this.leave();
       else if (this.over) return;
+      else if ((key === 'e' || key === 'Enter') && hud.reading()) hud.closeRead();
       else if ((key === 'e' || key === 'Enter') && this.near?.id === 'exit') this.leave();
       else if ((key === 'e' || key === 'Enter') && this.near) this.use(this.near.id);
       else this.choose(key);
@@ -96,6 +97,7 @@ export abstract class Room extends Phaser.Scene {
   }
 
   protected refreshPrompt() {
+    hud.closeRead();
     hud.prompt(this.near ? this.hint(this.near) : '← → walk · E use · the door on the right leads back to the street');
   }
 
@@ -108,7 +110,7 @@ export abstract class Room extends Phaser.Scene {
     });
   }
 
-  protected leave() { this.scene.start('world', { x: this.stage.x }); }
+  protected leave() { hud.closeRead(); this.scene.start('world', { x: this.stage.x }); }
 }
 
 /** The exit door, drawn the same in every room. Shared with the studio. */

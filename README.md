@@ -13,7 +13,7 @@ A playable career portfolio for Akash Narayan. Two pages: the portfolio (`index.
    cd ~/Desktop/"Akash Narayan AI Consultancy"/career-game && npm run dev
    ```
 
-3. You should see a line like `Local: http://127.0.0.1:5173/`. Hold `Cmd` and click that address. The portfolio opens. Click **Play my career** for the game.
+3. You should see a line like `Local: http://127.0.0.1:5173/follow-the-signal/`. Hold `Cmd` and click that address. The portfolio opens. Click **Play my career** for the game.
 4. To stop it, click back into Terminal and press `Ctrl + C`.
 
 If the first time says packages are missing, run `npm ci` once in the same folder, then step 2 again.

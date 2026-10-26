@@ -20,16 +20,20 @@ export class Cop28Level extends Room {
   private caught = 0;
   private bars: Phaser.GameObjects.Rectangle[] = [];
   private growth = 0;
+  private safe = new Set<number>();
 
   constructor() { super('cop28'); }
 
-  protected reset() { this.bad = Phaser.Math.Between(0, N - 1); this.caught = 0; this.bars = []; this.growth = 0; }
+  protected reset() { this.bad = Phaser.Math.Between(0, N - 1); this.caught = 0; this.bars = []; this.growth = 0; this.safe = new Set(); }
 
   protected hint(s: Spot) { return s.id === 'backup' ? s.label : `${s.label} · E`; }
 
   protected use(id: string) {
     if (id === 'podiums') return hud.say('Every mic sounds fine from here. Whatever is coming has not reached the audio yet.');
-    if (id === 'rf') return hud.say('One frequency is climbing. Count across the screen to see which podium it belongs to.');
+    if (id === 'rf') {
+      const cols = Array.from({ length: N }, (_, i) => `<div><i></i>${i + 1}</div>`).join('');
+      return hud.read('RF monitor: one bar per podium', `<div class="rf">${cols}</div><p>Watch for the bar that keeps climbing. Then switch that podium at the backup rack.</p>`);
+    }
     hud.say('Press 1 to 8 to switch that podium to its backup frequency.');
   }
 
@@ -41,6 +45,7 @@ export class Cop28Level extends Room {
       return hud.say(`Podium ${pick + 1} was clean. Switching it put a click on air. Minus 5 seconds.`);
     }
     this.bars[this.bad].setScale(1, 1).setFillStyle(0x7fd18b);
+    this.safe.add(this.bad);
     this.caught++;
     if (this.caught === 1) {
       const prev = this.bad;
@@ -58,6 +63,13 @@ export class Cop28Level extends Room {
     this.bars.forEach((b, i) => {
       if (i === this.bad) b.setScale(1, 1 + this.growth * 3).setFillStyle(this.growth > 0.5 && Math.floor(this.time.now / 200) % 2 ? 0xffffff : 0xe0483e);
       else if (b.fillColor !== 0x7fd18b) b.setScale(1, 1 + Math.abs(Math.sin(this.time.now / 400 + i)) * 0.4);
+    });
+    // Mirror the room's monitor on the big screen while it is open.
+    if (!hud.reading()) return;
+    document.querySelectorAll<HTMLElement>('#doc-body .rf i').forEach((bar, i) => {
+      const h = i === this.bad ? 25 + this.growth * 75 : 12 + Math.abs(Math.sin(this.time.now / 400 + i)) * 10;
+      bar.style.height = `${this.safe.has(i) ? 10 : h}%`;
+      bar.className = this.safe.has(i) ? 'safe' : i === this.bad && this.growth > 0.35 ? 'hot' : '';
     });
   }
 
