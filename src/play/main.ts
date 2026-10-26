@@ -2,7 +2,16 @@ import * as Phaser from 'phaser';
 import './play.css';
 import './input';
 import { WorldScene, VIEW_W, VIEW_H } from './world';
-import { studio, toggleSound } from './studioLevel';
+import { studio } from './studioLevel';
+import { audio } from './sound';
+import { LawLevel } from './levels/law';
+import { SacacLevel } from './levels/sacac';
+import { SunLevel } from './levels/sun';
+import { Cop28Level } from './levels/cop28';
+import { FlightLevel } from './levels/flight';
+import { KedgeLevel } from './levels/kedge';
+import { RouenLevel } from './levels/rouen';
+import { Micro1Level } from './levels/micro1';
 import * as hud from './hud';
 
 let game: Phaser.Game | null = null;
@@ -16,12 +25,14 @@ window.addEventListener('keydown', () => {
     backgroundColor: '#000000',
     physics: { default: 'arcade', arcade: { gravity: { x: 0, y: 700 } } },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [new WorldScene(), studio],
+    scene: [new WorldScene(), new LawLevel(), new SacacLevel(), studio, new SunLevel(), new Cop28Level(),
+      new FlightLevel(), new KedgeLevel(), new RouenLevel(), new Micro1Level()],
   });
 }, { once: true });
 
 // M toggles sound in any scene.
 window.addEventListener('keydown', async e => {
   if (e.key.toLowerCase() !== 'm' || !game) return;
-  hud.say((await toggleSound()) ? 'Sound on.' : 'Sound off.');
+  await audio.setEnabled(!audio.enabled);
+  hud.say(audio.enabled ? 'Sound on.' : 'Sound off.');
 });

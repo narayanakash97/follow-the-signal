@@ -5,7 +5,9 @@ import { input } from './input';
 import * as hud from './hud';
 
 export const VIEW_W = 320, VIEW_H = 180;
-const WORLD_W = 2100, GROUND = 160, DOOR_REACH = 18;
+const WORLD_W = 2650, GROUND = 160, DOOR_REACH = 18, SEA = [1780, 1860];
+/** Where the plane drops you in Paris. */
+export const LAND_X = 1880;
 
 /** Stages finished this session. A gate opens once the stage before it is done. */
 export const done = new Set<Stage['id']>();
@@ -40,6 +42,13 @@ export class WorldScene extends Phaser.Scene {
       this.physics.add.collider(this.player, gate);
     });
 
+    // Until you have flown, the sea between Delhi and Paris blocks the way.
+    if (!done.has('flight')) {
+      const wall = this.add.rectangle(SEA[0], GROUND - 40, 4, 80).setVisible(false);
+      this.physics.add.existing(wall, true);
+      this.physics.add.collider(this.player, wall);
+    }
+
     this.cameras.main.setBounds(0, 0, WORLD_W, VIEW_H).startFollow(this.player, true, 0.15, 0.15);
     input.handler = key => { if ((key === 'e' || key === 'Enter') && this.near) this.enter(this.near); };
     this.near = null;
@@ -66,19 +75,12 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
-  private enter(stage: Stage) {
-    if (stage.scene) { this.scene.start(stage.scene, { returnX: stage.x }); return; }
-    hud.card(stage, () => {
-      if (done.has(stage.id)) return;
-      done.add(stage.id);
-      this.scene.restart({ x: this.player.x }); // reopens the gate ahead
-    });
-  }
+  private enter(stage: Stage) { this.scene.start(stage.scene); }
 
   private drawWorld() {
     const g = this.add.graphics();
-    // Sky by region: Delhi dusk, Mumbai festival night, Dubai gold, flight, Paris blue.
-    const skies: [number, number, number][] = [[0, 1000, 0xe8a87c], [1000, 1300, 0x1d1b3a], [1300, 1620, 0xe9c98f], [1620, 1740, 0x9cc3e0], [1740, WORLD_W, 0x8fb3d9]];
+    // Sky by region: Delhi dusk, Mumbai festival night, Dubai gold, Delhi airport, Paris, Rouen, Paris.
+    const skies: [number, number, number][] = [[0, 1000, 0xe8a87c], [1000, 1300, 0x1d1b3a], [1300, 1600, 0xe9c98f], [1600, 1780, 0xe8a87c], [1780, 2120, 0x8fb3d9], [2120, 2380, 0xb9cde0], [2380, WORLD_W, 0x8fb3d9]];
     skies.forEach(([a, b, c]) => g.fillStyle(c).fillRect(a, 0, b - a, GROUND));
     g.fillStyle(0x6b5a4a).fillRect(0, GROUND, WORLD_W, VIEW_H - GROUND);
     g.fillStyle(0x4e4136);
@@ -124,18 +126,38 @@ export class WorldScene extends Phaser.Scene {
     g.fillStyle(0x5a5f66);
     for (let x = 1410; x < 1505; x += 14) g.fillRect(x, 144, 6, 16);
 
-    // Flight Delhi to Paris.
-    g.fillStyle(0xf4f1ea).fillEllipse(1680, 50, 40, 8).fillTriangle(1670, 50, 1690, 50, 1676, 64).fillTriangle(1660, 50, 1666, 50, 1660, 40);
-    g.fillStyle(0xffffff, 0.6);
-    for (let x = 1600; x < 1655; x += 8) g.fillRect(x, 50, 4, 1);
+    // Delhi airport: terminal and a parked plane.
+    g.fillStyle(0xd8d2c4).fillRect(1640, 110, 110, 50);
+    g.fillStyle(0x6f9ac0);
+    for (let x = 1646; x < 1745; x += 10) g.fillRect(x, 116, 7, 20);
+    g.fillStyle(0x3d4a5a).fillRect(1692, 138, 16, 22);
+    g.fillStyle(0xf4f1ea).fillEllipse(1620, 146, 40, 9).fillTriangle(1604, 146, 1610, 146, 1604, 134);
 
-    // 6. Paris: Eiffel silhouette, KEDGE glass building.
-    g.lineStyle(2, 0x4a4f5a).lineBetween(1770, 160, 1790, 50).lineBetween(1810, 160, 1790, 50);
-    g.lineBetween(1776, 128, 1804, 128).lineBetween(1782, 96, 1798, 96);
-    g.fillStyle(0x3d6a96).fillRect(1840, 92, 80, 68);
+    // The sea, crossed only by plane.
+    g.fillStyle(0x3d6a96).fillRect(SEA[0], GROUND, SEA[1] - SEA[0], VIEW_H - GROUND);
+
+    // Paris: Eiffel Tower, then KEDGE's glass building.
+    g.lineStyle(2, 0x4a4f5a).lineBetween(1890, 160, 1910, 40).lineBetween(1930, 160, 1910, 40);
+    g.lineBetween(1896, 126, 1924, 126).lineBetween(1902, 90, 1918, 90);
+    g.fillStyle(0x3d6a96).fillRect(1950, 92, 80, 68);
     g.fillStyle(0x9cc3e0);
-    for (let x = 1844; x < 1916; x += 10) for (let y = 96; y < 132; y += 10) g.fillRect(x, y, 7, 7);
-    g.fillStyle(0x1b2a3a).fillRect(1872, 138, 16, 22);
+    for (let x = 1954; x < 2026; x += 10) for (let y = 96; y < 132; y += 10) g.fillRect(x, y, 7, 7);
+    g.fillStyle(0x1b2a3a).fillRect(1972, 138, 16, 22);
+
+    // Rouen: cathedral spire and a half-timbered house.
+    g.fillStyle(0x7d776c).fillRect(2180, 70, 26, 90).fillTriangle(2180, 70, 2206, 70, 2193, 26);
+    g.fillStyle(0xf1e6cc).fillRect(2225, 96, 50, 64);
+    g.lineStyle(2, 0x5a3a24).strokeRect(2225, 96, 50, 64).lineBetween(2225, 96, 2250, 128).lineBetween(2275, 96, 2250, 128);
+    g.fillStyle(0x8a3a2a).fillTriangle(2221, 96, 2279, 96, 2250, 78);
+    g.fillStyle(0x5a3a24).fillRect(2242, 140, 16, 20);
+
+    // micro1: a Paris apartment block with a lit window.
+    g.fillStyle(0xe8dcc4).fillRect(2460, 70, 80, 90);
+    g.fillStyle(0x4a5a6a).fillRect(2456, 62, 88, 10);
+    g.fillStyle(0x9cc3e0);
+    for (const x of [2470, 2495, 2520]) for (const y of [80, 104]) g.fillRect(x, y, 12, 14);
+    g.fillStyle(0x6fc7d6).fillRect(2495, 104, 12, 14);
+    g.fillStyle(0x4a3a2c).fillRect(2492, 136, 16, 24);
 
     // Door markers so every entrance is easy to spot.
     for (const s of stages) g.fillStyle(0xe4b367).fillTriangle(s.x - 4, 34, s.x + 4, 34, s.x, 40);

@@ -8,6 +8,9 @@ export function where(stage: Stage | undefined) {
   $('where').textContent = stage ? `${stage.place} · ${stage.years}` : '';
 }
 
+/** Overrides the top-left line, e.g. for a countdown. */
+export function status(text: string) { $('where').textContent = text; }
+
 export function prompt(text: string) { $('prompt').textContent = text; }
 
 export function say(text: string) { $('say').textContent = text; $('say').hidden = !text; }

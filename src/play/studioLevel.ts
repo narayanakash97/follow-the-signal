@@ -1,14 +1,13 @@
 import { StudioScene } from '../studio';
 import { act, initialState, issues, type Action, type Station } from '../state';
 import { stages, brief } from '../stages';
-import { DemoAudio } from '../audio';
+import { audio } from './sound';
 import { input } from './input';
 import { done } from './world';
 import * as hud from './hud';
 
 // Square Wave Studios inside the game: keyboard only, text in the HUD.
 const stage = stages.find(s => s.id === 'squarewave')!;
-const audio = new DemoAudio();
 let state = initialState();
 let near: Station | null = null;
 
@@ -63,5 +62,3 @@ function listen() {
   const problems = issues(state.take);
   hud.say(problems.length ? problems.join(' ') : 'Quiet room, raw take, nothing processed. This meets the brief. Press 3 to deliver.');
 }
-
-export const toggleSound = async () => { await audio.setEnabled(!audio.enabled); return audio.enabled; };

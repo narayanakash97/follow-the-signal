@@ -1,6 +1,6 @@
 # Follow the Signal
 
-A playable career portfolio for Akash Narayan. Two pages: the portfolio (`index.html`) and a full-screen laptop game (`play.html`). The game is one walkable world from Delhi to Paris with six stops. Square Wave Studios is a playable level; the other stops show their story card for now.
+A playable career portfolio for Akash Narayan. Two pages: the portfolio (`index.html`) and a full-screen laptop game (`play.html`). The game is one walkable world from Delhi to Paris with nine playable stops, including a flight you steer.
 
 ## Open it on your Mac
 
@@ -18,7 +18,7 @@ If the first time says packages are missing, run `npm ci` once in the same folde
 
 ## How to play
 
-Press any key to start (it goes full screen). Arrow keys walk, Up or Space jumps, `E` enters a building, `M` turns sound on, `Esc` leaves a level. Inside the studio, `1` `2` `3` are the desk choices.
+Press any key to start (it goes full screen). Arrow keys walk, Up or Space jumps, `E` enters a building, `M` turns sound on, `Esc` leaves a level. Number keys make choices inside levels. On the flight, ↑ ↓ steer.
 
 ## Files
 
@@ -27,6 +27,8 @@ Press any key to start (it goes full screen). Arrow keys walk, Up or Space jumps
 | `src/stages.ts` | The six career stops and their text. Change wording here |
 | `src/play/world.ts` | The walkable world, buildings, gates |
 | `src/play/studioLevel.ts` | The Square Wave level's controls and messages |
+| `src/play/room.ts` | Shared engine for the walk-and-use levels |
+| `src/play/levels/` | One file per level: law, sacac, sun, cop28, flight, kedge, rouen, micro1 |
 | `src/state.ts` | Studio rules: what each action does and when a take can be delivered |
 | `src/studio.ts` | The pixel room, the walking, the fan, the building site, the desk screen |
 | `src/sprite.ts` | Pixel Akash. Each letter in the grid is one coloured pixel |

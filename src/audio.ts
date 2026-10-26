@@ -49,6 +49,52 @@ export class DemoAudio {
     }
     this.stopTimer = window.setTimeout(() => this.stop(), 2100);
   }
+  /** A strummed open chord, for the moment the signal chain works. */
+  async chord() {
+    const ctx = await this.ready();
+    if (!ctx) return;
+    [196, 247, 294, 392, 494].forEach((f, i) => this.note(ctx, f, ctx.currentTime + i * 0.035, 1.6, 'triangle', 0.03));
+  }
+
+  /** A synthetic "voice": a gliding buzz. With glitch, the pitch jumps mid-phrase. */
+  async voice(glitch: boolean) {
+    const ctx = await this.ready();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator(), filter = ctx.createBiquadFilter(), gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.linearRampToValueAtTime(180, now + 0.5);
+    if (glitch) { osc.frequency.setValueAtTime(320, now + 0.55); osc.frequency.setValueAtTime(170, now + 0.7); }
+    osc.frequency.linearRampToValueAtTime(120, now + 1.2);
+    filter.type = 'lowpass'; filter.frequency.value = 900;
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.06, now + 0.05);
+    gain.gain.setValueAtTime(0.06, now + 1.1);
+    gain.gain.linearRampToValueAtTime(0, now + 1.25);
+    osc.connect(filter).connect(gain).connect(ctx.destination);
+    osc.start(now); osc.stop(now + 1.3);
+    this.nodes.push(osc);
+  }
+
+  private async ready() {
+    if (!this.enabled) return null;
+    this.stop();
+    const ctx = this.context ??= new AudioContext();
+    await ctx.resume();
+    return this.enabled ? ctx : null;
+  }
+
+  private note(ctx: AudioContext, freq: number, at: number, length: number, type: OscillatorType, level: number) {
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.type = type; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(level, at);
+    gain.gain.exponentialRampToValueAtTime(0.0001, at + length);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(at); osc.stop(at + length);
+    this.nodes.push(osc);
+  }
+
   stop() {
     window.clearTimeout(this.stopTimer);
     for (const node of this.nodes) { try { node.stop(); } catch {} node.disconnect(); }
