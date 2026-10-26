@@ -6,18 +6,16 @@ import * as hud from '../hud';
 // KEDGE library, new country: the shelves are in French and the library is closing.
 type Shelf = Spot & { take: string; topic?: string };
 const shelves: Shelf[] = [
-  { id: 'droit', x: 40, label: 'Rayon : Droit', take: 'Contract law textbooks. Your old life, not this thesis.' },
-  { id: 'son', x: 80, label: 'Rayon : Ingénierie du son', take: 'Recording and mixing research.', topic: 'sound engineering' },
-  { id: 'luxe', x: 120, label: 'Rayon : Marketing du luxe', take: 'Luxury brand case studies. Interesting, but not yours.' },
-  { id: 'trad', x: 160, label: 'Rayon : Traduction', take: 'Traduction juridique: legal translation. Not sonic. The sound-related work must be shelved somewhere musical.' },
-  { id: 'ia', x: 200, label: 'Rayon : IA et musique', take: 'Research on generative AI and music-making.', topic: 'AI in music' },
+  { id: 'son', x: 60, label: 'Rayon : Ingénierie du son', take: 'Recording and mixing research.', topic: 'sound engineering' },
+  { id: 'trad', x: 120, label: 'Rayon : Traduction', take: 'Traduction juridique: legal translation. Not sonic. The sound-related work must be shelved somewhere musical.' },
+  { id: 'ia', x: 180, label: 'Rayon : IA et musique', take: 'Research on generative AI and music-making.', topic: 'AI in music' },
   { id: 'musico', x: 240, label: 'Rayon : Musicologie', take: 'Studies of how sound carries meaning across cultures.', topic: 'sonic translation' },
 ];
 
 export class KedgeLevel extends Room {
   stage = stages.find(s => s.id === 'kedge')!;
-  intro = 'KEDGE, Paris. Your thesis covers sound engineering, AI in music and sonic translation. The library closes in 75 seconds and every shelf is labelled in French.';
-  limit = 75_000;
+  intro = 'KEDGE, Paris. Your thesis covers sound engineering, AI in music and sonic translation. The library closes in 60 seconds and every shelf is labelled in French.';
+  limit = 60_000;
   outOfTime = '"La bibliothèque est fermée." The library closed on you.';
   spots: Spot[] = [...shelves.map(s => ({ ...s, markerY: 40 })), { id: 'desk', x: 282, label: 'Bureau : déposer le mémoire', markerY: 96 }];
   private found = new Set<string>();
