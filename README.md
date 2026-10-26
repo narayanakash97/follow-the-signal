@@ -1,6 +1,6 @@
 # Follow the Signal
 
-A playable career portfolio for Akash Narayan. Chapter 2, the recording studio, is playable. The other four chapters are listed as coming soon.
+A playable career portfolio for Akash Narayan. Two pages: the portfolio (`index.html`) and a full-screen laptop game (`play.html`). The game is one walkable world from Delhi to Paris with six stops. Square Wave Studios is a playable level; the other stops show their story card for now.
 
 ## Open it on your Mac
 
@@ -11,24 +11,26 @@ A playable career portfolio for Akash Narayan. Chapter 2, the recording studio, 
    cd ~/Desktop/"Akash Narayan AI Consultancy"/career-game && npm run dev
    ```
 
-3. You should see a line like `Local: http://127.0.0.1:5173/`. Hold `Cmd` and click that address. The game opens in your browser.
+3. You should see a line like `Local: http://127.0.0.1:5173/`. Hold `Cmd` and click that address. The portfolio opens. Click **Play my career** for the game.
 4. To stop it, click back into Terminal and press `Ctrl + C`.
 
 If the first time says packages are missing, run `npm ci` once in the same folder, then step 2 again.
 
 ## How to play
 
-Click the room, then use the left and right arrow keys to walk and `E` to use what is nearby. Every action is also a button under the room, so it works on a phone.
+Press any key to start (it goes full screen). Arrow keys walk, Up or Space jumps, `E` enters a building, `M` turns sound on, `Esc` leaves a level. Inside the studio, `1` `2` `3` are the desk choices.
 
 ## Files
 
 | File | What it does |
 |---|---|
-| `src/state.ts` | The rules: what each action does and when a take can be delivered |
+| `src/stages.ts` | The six career stops and their text. Change wording here |
+| `src/play/world.ts` | The walkable world, buildings, gates |
+| `src/play/studioLevel.ts` | The Square Wave level's controls and messages |
+| `src/state.ts` | Studio rules: what each action does and when a take can be delivered |
 | `src/studio.ts` | The pixel room, the walking, the fan, the building site, the desk screen |
 | `src/sprite.ts` | Pixel Akash. Each letter in the grid is one coloured pixel |
-| `src/career.ts` | The career text on the cards. Change wording here |
-| `src/main.ts` | The page around the game: buttons, messages, checklist |
+| `src/main.ts` | The portfolio page |
 | `src/audio.ts` | Optional demo sound, made in the browser. Never uses the microphone |
 
 ## Checks

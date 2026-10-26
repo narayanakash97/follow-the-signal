@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Follow the Signal · Play</title>
+  </head>
+  <body>
+    <div id="game"></div>
+    <div id="hud">
+      <p id="where"></p>
+      <p id="say" hidden></p>
+      <p id="prompt"></p>
+      <section id="card" hidden>
+        <h2 id="card-title"></h2>
+        <p id="card-meta"></p>
+        <p id="card-story"></p>
+        <p class="hint">Press Enter to continue</p>
+      </section>
+      <section id="start">
+        <h1>Follow the Signal</h1>
+        <p>Akash Narayan, from law to sound to AI.</p>
+        <p class="hint">Press any key to start</p>
+        <p class="small">← → walk · ↑ or Space jump · E enter · M sound · Esc leave a level</p>
+        <p class="small mobile">Made for a laptop with a keyboard. <a href="/">Read the portfolio instead</a>.</p>
+      </section>
+    </div>
+    <script type="module" src="/src/play/main.ts"></script>
+  </body>
+</html>

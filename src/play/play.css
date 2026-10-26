@@ -1,0 +1,20 @@
+html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+body { font: 18px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color: #f1eee5; }
+#game { position: fixed; inset: 0; }
+#game canvas { image-rendering: pixelated; }
+#hud { position: fixed; inset: 0; pointer-events: none; }
+#hud p { margin: 0; }
+#where { position: absolute; top: 16px; left: 20px; padding: 6px 12px; background: rgb(0 0 0 / 0.6); border-radius: 6px; }
+#where:empty, #prompt:empty { display: none; }
+#say { position: absolute; top: 16px; right: 20px; max-width: 42ch; padding: 10px 14px; background: rgb(0 0 0 / 0.75); border-radius: 6px; }
+#prompt { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 8px 16px;
+  background: #e4b367; color: #1b1a21; font-weight: 600; border-radius: 6px; white-space: nowrap; }
+#card, #start { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(560px, 90vw);
+  padding: 28px 32px; background: #f1eee5; color: #22201c; border-radius: 10px; box-shadow: 0 10px 40px rgb(0 0 0 / 0.5); }
+#card h2, #start h1 { margin: 0 0 4px; }
+#card-meta { color: #5f5a50; margin-bottom: 14px !important; }
+.hint { margin-top: 18px !important; font-weight: 600; color: #9a5b14; }
+.small { font-size: 15px; color: #5f5a50; margin-top: 8px !important; }
+.mobile { display: none; }
+.mobile a { pointer-events: auto; color: #9a5b14; }
+@media (max-width: 800px), (hover: none) { .mobile { display: block; } }

@@ -1,0 +1,31 @@
+import { input } from './input';
+import type { Stage } from '../stages';
+
+// Text lives in the page over the canvas, so it stays sharp at any screen size.
+const $ = (id: string) => document.getElementById(id)!;
+
+export function where(stage: Stage | undefined) {
+  $('where').textContent = stage ? `${stage.place} · ${stage.years}` : '';
+}
+
+export function prompt(text: string) { $('prompt').textContent = text; }
+
+export function say(text: string) { $('say').textContent = text; $('say').hidden = !text; }
+
+export const cardOpen = () => !$('card').hidden;
+
+/** Shows a story card and hands the keyboard to it until Enter or Escape. */
+export function card(stage: Stage, onClose: () => void) {
+  const prev = input.handler;
+  input.left = input.right = false;
+  $('card-title').textContent = stage.title;
+  $('card-meta').textContent = `${stage.place} · ${stage.years}`;
+  $('card-story').textContent = stage.story;
+  $('card').hidden = false;
+  input.handler = key => {
+    if (key !== 'Enter' && key !== 'Escape' && key !== 'e') return;
+    $('card').hidden = true;
+    input.handler = prev;
+    onClose();
+  };
+}

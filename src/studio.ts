@@ -32,7 +32,9 @@ export class StudioScene extends Phaser.Scene {
   constructor(private hooks: Hooks) { super('studio'); }
 
   create() {
-    frames.forEach((frame, i) => this.textures.addCanvas(`akash${i}`, drawSprite(frame)));
+    frames.forEach((frame, i) => { if (!this.textures.exists(`akash${i}`)) this.textures.addCanvas(`akash${i}`, drawSprite(frame)); });
+    this.dust = [];
+    this.nearStation = null;
     this.drawRoom();
     this.player = this.add.image(20, FLOOR, 'akash0').setOrigin(0.5, 1).setDepth(5);
     this.marker = this.add.triangle(0, 0, 0, 0, 8, 0, 4, 5, 0xe4b367).setVisible(false).setDepth(6);
