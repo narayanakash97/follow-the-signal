@@ -18,7 +18,7 @@ If the first time says packages are missing, run `npm ci` once in the same folde
 
 ## How to play
 
-Press any key to start (it goes full screen). Arrow keys walk, Up or Space jumps, `E` enters a building, `M` turns sound on, `Esc` leaves a level. Number keys make choices inside levels. On the flight, ↑ ↓ steer.
+Press any key to start (it goes full screen). Arrow keys walk, Up or Space jumps, `E` enters a building, `M` turns sound on, walk out through the door on the right to leave a level (`Esc` also works). Number keys make choices inside levels. On the flight, ↑ ↓ steer.
 
 ## Files
 

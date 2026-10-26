@@ -19,7 +19,7 @@ export class LawLevel extends Room {
     { id: 'a', x: 110, label: 'read Exhibit A', markerY: 92 },
     { id: 'b', x: 165, label: 'read Exhibit B', markerY: 92 },
     { id: 'c', x: 220, label: 'read Exhibit C', markerY: 92 },
-    { id: 'bench', x: 285, label: 'flag the contradiction', markerY: 80 },
+    { id: 'bench', x: 268, label: 'flag the contradiction', markerY: 80 },
   ];
 
   constructor() { super('law'); }
@@ -61,8 +61,8 @@ export class LawLevel extends Room {
       g.fillStyle(0xb5652b).fillRect(x - 9, 98, 18, 3);
     }
     // The bench.
-    g.fillStyle(0x6b4a30).fillRect(250, 100, 70, 50);
-    g.fillStyle(0x7d5a3c).fillRect(246, 96, 74, 6);
-    g.fillStyle(0x9a8a5a).fillCircle(285, 118, 7);
+    g.fillStyle(0x6b4a30).fillRect(240, 100, 56, 50);
+    g.fillStyle(0x7d5a3c).fillRect(236, 96, 64, 6);
+    g.fillStyle(0x9a8a5a).fillCircle(268, 118, 7);
   }
 }

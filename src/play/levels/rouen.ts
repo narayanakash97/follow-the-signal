@@ -8,7 +8,7 @@ const places: (Spot & { what: string; noise: string; offset: number })[] = [
   { id: 'cathedral', x: 45, label: 'record the cathedral bells', markerY: 30, what: 'Cathedral bells', noise: 'A tour group walked past chatting.', offset: 0 },
   { id: 'clock', x: 125, label: 'record the Gros-Horloge chime', markerY: 50, what: 'Gros-Horloge chime', noise: 'A scooter cut through the arch.', offset: 1300 },
   { id: 'seine', x: 205, label: 'record the Seine', markerY: 100, what: 'The Seine at the quay', noise: 'A delivery van idled on the quay.', offset: 2600 },
-  { id: 'market', x: 280, label: 'record the market', markerY: 90, what: 'Vieux-Marché morning', noise: 'Construction drilling started nearby.', offset: 600 },
+  { id: 'market', x: 268, label: 'record the market', markerY: 90, what: 'Vieux-Marché morning', noise: 'Construction drilling started nearby.', offset: 600 },
 ];
 const CYCLE = 4200, QUIET = 2400;
 
@@ -59,10 +59,10 @@ export class RouenLevel extends Room {
     for (let x = 170; x < 240; x += 6) g.fillRect(x, 108, 1, 12);
     g.fillRect(170, 108, 70, 2);
     // Half-timbered houses by the market.
-    g.fillStyle(0xf1e6cc).fillRect(256, 70, 56, 80);
-    g.lineStyle(2, 0x5a3a24).strokeRect(256, 70, 56, 80);
-    g.lineBetween(256, 70, 284, 110).lineBetween(312, 70, 284, 110).lineBetween(284, 70, 284, 150);
-    g.fillStyle(0x8a3a2a).fillTriangle(252, 70, 316, 70, 284, 50);
+    g.fillStyle(0xf1e6cc).fillRect(244, 70, 50, 80);
+    g.lineStyle(2, 0x5a3a24).strokeRect(244, 70, 50, 80);
+    g.lineBetween(244, 70, 269, 110).lineBetween(294, 70, 269, 110).lineBetween(269, 70, 269, 150);
+    g.fillStyle(0x8a3a2a).fillTriangle(240, 70, 298, 70, 269, 50);
     this.noiseLights = places.map(p => this.add.circle(p.x, (p.markerY ?? 70) - 10, 3, 0x7fd18b));
   }
 }

@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { frames, drawSprite } from './sprite';
 import type { Station, StudioState } from './state';
+import { drawDoor } from './play/room';
 
 export const W = 320, H = 180, FLOOR = 150;
 export const stations: { id: Station; x: number; label: string }[] = [
@@ -8,11 +9,11 @@ export const stations: { id: Station; x: number; label: string }[] = [
   { id: 'fan', x: 94, label: 'Fan' },
   { id: 'window', x: 158, label: 'Window' },
   { id: 'mic', x: 224, label: 'Mic booth' },
-  { id: 'desk', x: 284, label: 'Mixing desk' },
+  { id: 'desk', x: 272, label: 'Mixing desk' },
 ];
 const REACH = 14, SPEED = 70;
 
-type Hooks = { near(station: Station | null): void; use(station: Station): void; ready(): void };
+type Hooks = { near(station: Station | null): void; use(station: Station): void; ready(): void; door(at: boolean): void; leave(): void };
 
 export class StudioScene extends Phaser.Scene {
   held = { left: false, right: false };
@@ -25,6 +26,7 @@ export class StudioScene extends Phaser.Scene {
   private rec!: Phaser.GameObjects.Arc;
   private target: { x: number; then?: Station } | null = null;
   private nearStation: Station | null = null;
+  private atDoor = false;
   private walkClock = 0;
   private fanOn = true;
   private building = true;
@@ -35,7 +37,9 @@ export class StudioScene extends Phaser.Scene {
     frames.forEach((frame, i) => { if (!this.textures.exists(`akash${i}`)) this.textures.addCanvas(`akash${i}`, drawSprite(frame)); });
     this.dust = [];
     this.nearStation = null;
+    this.atDoor = false;
     this.drawRoom();
+    drawDoor(this.add.graphics());
     this.player = this.add.image(20, FLOOR, 'akash0').setOrigin(0.5, 1).setDepth(5);
     this.marker = this.add.triangle(0, 0, 0, 0, 8, 0, 4, 5, 0xe4b367).setVisible(false).setDepth(6);
     this.hooks.ready();
@@ -70,7 +74,10 @@ export class StudioScene extends Phaser.Scene {
     this.target = { x, then: use ? station : undefined };
   }
 
-  interact() { if (this.nearStation) this.hooks.use(this.nearStation); }
+  interact() {
+    if (this.atDoor) this.hooks.leave();
+    else if (this.nearStation) this.hooks.use(this.nearStation);
+  }
 
   reset() {
     this.target = null;
@@ -91,7 +98,9 @@ export class StudioScene extends Phaser.Scene {
   }
 
   private updateNear() {
-    const hit = stations.find(s => Math.abs(s.x - this.player.x) < REACH) ?? null;
+    const door = this.player.x > 302;
+    if (door !== this.atDoor) { this.atDoor = door; this.hooks.door(door); }
+    const hit = door ? null : stations.find(s => Math.abs(s.x - this.player.x) < REACH) ?? null;
     const id = hit?.id ?? null;
     if (hit) this.marker.setPosition(hit.x, markerY[hit.id] + Math.sin(this.time.now / 200) * 1.5);
     if (id === this.nearStation) return;
@@ -160,19 +169,19 @@ export class StudioScene extends Phaser.Scene {
     this.rec = this.add.circle(225, 32, 3, 0xe0483e).setAlpha(0.25);
 
     // Mixing desk with monitor.
-    g.fillStyle(0x1e1d23).fillRect(262, 86, 46, 30);
-    g.fillStyle(0x0f1418).fillRect(264, 88, 42, 26);
-    g.fillStyle(0x3a2c22).fillRect(256, 118, 58, 4).fillRect(258, 122, 3, 26).fillRect(309, 122, 3, 26);
-    g.fillStyle(0x2f3138).fillRect(260, 114, 50, 5);
+    g.fillStyle(0x1e1d23).fillRect(250, 86, 46, 30);
+    g.fillStyle(0x0f1418).fillRect(252, 88, 42, 26);
+    g.fillStyle(0x3a2c22).fillRect(244, 118, 58, 4).fillRect(246, 122, 3, 26).fillRect(297, 122, 3, 26);
+    g.fillStyle(0x2f3138).fillRect(248, 114, 50, 5);
     g.fillStyle(0xc9cdd2);
-    for (let x = 264; x < 308; x += 5) g.fillRect(x, 115, 2, 2);
+    for (let x = 252; x < 296; x += 5) g.fillRect(x, 115, 2, 2);
     this.wave = this.add.graphics();
   }
 
   private drawWave(state: StudioState) {
     const take = state.take, g = this.wave.clear();
     const y0 = 101;
-    if (!take) { g.lineStyle(1, 0x3f5560).lineBetween(266, y0, 304, y0); return; }
+    if (!take) { g.lineStyle(1, 0x3f5560).lineBetween(254, y0, 292, y0); return; }
     const noisy = take.fan || take.construction;
     g.lineStyle(1, state.delivered ? 0x7fd18b : take.processed ? 0xe4b367 : noisy ? 0xe0786b : 0x6fc7d6);
     g.beginPath();
@@ -180,7 +189,7 @@ export class StudioScene extends Phaser.Scene {
       const speech = Math.sin(i * 0.9) * Math.sin(i * 0.17) * 7;
       const hiss = noisy && !take.processed ? Math.sin(i * 12.9898) * 3.5 : 0;
       const pt = take.processed ? speech * 0.6 : speech + hiss;
-      i ? g.lineTo(266 + i, y0 + pt) : g.moveTo(266, y0 + pt);
+      i ? g.lineTo(254 + i, y0 + pt) : g.moveTo(254, y0 + pt);
     }
     g.strokePath();
   }

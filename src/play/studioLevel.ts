@@ -24,13 +24,15 @@ export const studio = new StudioScene({
     studio.show(state);
     input.handler = onKey;
     hud.where(stage);
-    hud.prompt('← → walk · E use · Esc back to the street');
+    hud.prompt(WALK);
     hud.say('Square Wave Studios. A client needs a speech recording. Start with the brief on the wall.');
   },
   near(station) {
     near = station;
-    hud.prompt(station ? labels[station] : '← → walk · E use · Esc back to the street');
+    hud.prompt(station ? labels[station] : WALK);
   },
+  door(at) { hud.prompt(at ? 'E: leave by the door' : WALK); },
+  leave,
   use(station) {
     if (station === 'desk') return listen();
     run(primary[station]);
@@ -38,8 +40,12 @@ export const studio = new StudioScene({
   },
 });
 
+const WALK = '← → walk · E use · the door on the right leads back to the street';
+
+function leave() { audio.stop(); studio.scene.start('world', { x: stage.x }); }
+
 function onKey(key: string) {
-  if (key === 'Escape') { audio.stop(); studio.scene.start('world', { x: stage.x }); }
+  if (key === 'Escape') leave();
   else if (key === 'e' || key === 'Enter') studio.interact();
   else if (near === 'desk' && key === '1') listen();
   else if (near === 'desk' && key === '2') run('process');
