@@ -3,63 +3,41 @@ import { stages } from '../../stages';
 import { Room, FLOOR, ROOM_W, type Spot } from '../room';
 import * as hud from '../hud';
 
-// Field recording in Rouen: record each place in a quiet gap. The battery drains, and the rain comes in.
-const places: (Spot & { what: string; noise: string; offset: number })[] = [
-  { id: 'cathedral', x: 45, label: 'Cathedral bells', markerY: 30, what: 'Cathedral bells', noise: 'A tour group walked past chatting.', offset: 0 },
-  { id: 'clock', x: 125, label: 'Gros-Horloge', markerY: 50, what: 'Gros-Horloge chime', noise: 'A scooter cut through the arch.', offset: 1300 },
-  { id: 'seine', x: 205, label: 'The Seine', markerY: 100, what: 'The Seine at the quay', noise: 'A delivery van idled on the quay.', offset: 2600 },
-  { id: 'market', x: 268, label: 'Vieux-Marché', markerY: 90, what: 'Vieux-Marché morning', noise: 'Construction drilling started nearby.', offset: 600 },
-];
-const CYCLE = 4200, LIMIT = 70_000;
+// Rouen, kept short: record three places, then deliver them to the tourism office.
+const places: Record<string, string> = {
+  cathedral: 'Cathedral bells',
+  clock: 'Gros-Horloge chime',
+  seine: 'The Seine at the quay',
+};
 
 export class RouenLevel extends Room {
   stage = stages.find(s => s.id === 'rouen')!;
-  intro = 'Rouen, with a recorder. Build the city\'s sound library: four places, each recorded in a quiet gap (green light). Every spoiled take wastes battery.';
-  limit = LIMIT;
-  outOfTime = 'The recorder battery died.';
-  spots: Spot[] = places;
+  intro = 'Rouen, with a recorder. Capture three sounds of the city, then bring them to the tourism office.';
+  spots: Spot[] = [
+    { id: 'cathedral', x: 45, label: 'Cathedral bells · E record', markerY: 30 },
+    { id: 'clock', x: 125, label: 'Gros-Horloge · E record', markerY: 50 },
+    { id: 'seine', x: 205, label: 'The Seine · E record', markerY: 100 },
+    { id: 'office', x: 268, label: 'Office de Tourisme · E deliver', markerY: 46 },
+  ];
   private got = new Set<string>();
-  private noiseLights: Phaser.GameObjects.Arc[] = [];
-  private clock = 0;
-  private raining = false;
-  private rain!: Phaser.GameObjects.Graphics;
+  private ticks: Phaser.GameObjects.Arc[] = [];
 
   constructor() { super('rouen'); }
 
-  protected reset() { this.got = new Set(); this.noiseLights = []; this.clock = 0; this.raining = false; }
+  protected reset() { this.got = new Set(); this.ticks = []; }
 
-  private quiet(i: number) { return (this.clock + places[i].offset) % CYCLE < (this.raining ? 1400 : 2400); }
-
-  protected hint(s: Spot) { return `${s.label} · E record`; }
+  protected hint(s: Spot) { return s.label; }
 
   protected use(id: string) {
-    const i = places.findIndex(p => p.id === id), p = places[i];
-    if (this.got.has(id)) return hud.say(`${p.what} is already in the library.`);
-    if (!this.quiet(i)) { this.penalty(4_000); return hud.say(`${p.noise} Spoiled take, wasted battery.`); }
-    this.got.add(id);
-    if (this.got.size === 4) {
-      this.over = true;
-      hud.say(`Four clean takes with ${Math.round(this.left / LIMIT * 100)}% battery left. The Rouen Sound Library has its first entries.`);
-      return void this.time.delayedCall(2200, () => this.finish());
+    if (id !== 'office') {
+      this.got.add(id);
+      this.ticks[Object.keys(places).indexOf(id)].setVisible(true);
+      return hud.say(`${places[id]}: recorded. ${this.got.size} of 3.`);
     }
-    if (this.got.size === 2 && !this.raining) {
-      this.raining = true;
-      return hud.say('Two clean takes. Then rain rolls in off the Seine, and the quiet gaps get shorter.');
-    }
-    hud.say(`${p.what}: clean take. ${this.got.size} of 4.`);
-  }
-
-  protected tick(delta: number) {
-    this.clock += delta;
-    hud.status(`${this.stage.place} · recorder battery ${Math.max(0, Math.round(this.left / LIMIT * 100))}%`);
-    this.noiseLights.forEach((l, i) => l.setFillStyle(this.got.has(places[i].id) ? 0x6fc7d6 : this.quiet(i) ? 0x7fd18b : 0xe0483e));
-    this.rain.clear();
-    if (!this.raining) return;
-    this.rain.lineStyle(1, 0xdde8f2, 0.6);
-    for (let i = 0; i < 40; i++) {
-      const x = (i * 37 + this.clock * 0.05) % ROOM_W, y = (i * 53 + this.clock * 0.3) % FLOOR;
-      this.rain.lineBetween(x, y, x - 2, y + 6);
-    }
+    if (this.got.size < 3) return hud.say(`${this.got.size} of 3 recorded. The library needs all three.`);
+    this.over = true;
+    hud.say('Edited, restored and filed: the start of the Rouen Sound Library, and sound for Seine Rise.');
+    this.time.delayedCall(2400, () => this.finish());
   }
 
   protected draw(g: Phaser.GameObjects.Graphics) {
@@ -75,11 +53,12 @@ export class RouenLevel extends Room {
     g.fillStyle(0x30333a);
     for (let x = 170; x < 240; x += 6) g.fillRect(x, 108, 1, 12);
     g.fillRect(170, 108, 70, 2);
+    // The tourism office: a half-timbered house.
     g.fillStyle(0xf1e6cc).fillRect(244, 70, 50, 80);
     g.lineStyle(2, 0x5a3a24).strokeRect(244, 70, 50, 80);
     g.lineBetween(244, 70, 269, 110).lineBetween(294, 70, 269, 110).lineBetween(269, 70, 269, 150);
     g.fillStyle(0x8a3a2a).fillTriangle(240, 70, 298, 70, 269, 50);
-    this.noiseLights = places.map(p => this.add.circle(p.x, (p.markerY ?? 70) - 10, 3, 0x7fd18b));
-    this.rain = this.add.graphics().setDepth(7);
+    // A blue light above each place once it is recorded.
+    this.ticks = [45, 125, 205].map((x, i) => this.add.circle(x, [20, 40, 90][i], 3, 0x6fc7d6).setVisible(false));
   }
 }
