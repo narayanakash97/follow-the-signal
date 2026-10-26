@@ -28,6 +28,8 @@ window.addEventListener('keydown', () => {
     scene: [new WorldScene(), new LawLevel(), new SacacLevel(), studio, new SunLevel(), new Cop28Level(),
       new FlightLevel(), new KedgeLevel(), new RouenLevel(), new Micro1Level()],
   });
+  // Local preview only: lets scripted play-tests jump straight to a level.
+  if (import.meta.env.DEV) (window as unknown as { __game: Phaser.Game }).__game = game;
 }, { once: true });
 
 // M toggles sound in any scene.

@@ -13,7 +13,13 @@ export function status(text: string) { $('where').textContent = text; }
 
 export function prompt(text: string) { $('prompt').textContent = text; }
 
-export function say(text: string) { $('say').textContent = text; $('say').hidden = !text; }
+export function say(text: string) {
+  const el = $('say');
+  el.textContent = text;
+  el.hidden = !text;
+  // Restart the pop animation so every new message catches the eye.
+  el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+}
 
 export const cardOpen = () => !$('card').hidden;
 

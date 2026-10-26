@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { stages } from '../../stages';
 import { input } from '../input';
 import { done, VIEW_W, LAND_X } from '../world';
+import { audio } from '../sound';
 import * as hud from '../hud';
 
 // Delhi to Paris. The plane flies itself forward; you steer up and down.
@@ -15,6 +16,8 @@ export class FlightLevel extends Phaser.Scene {
   private t = 0;
   private spawnIn = 0;
   private notes = 0;
+  private stolen = 0;
+  private safeUntil = 0;
   private landing = false;
   private delhi!: Phaser.GameObjects.Graphics;
   private paris!: Phaser.GameObjects.Graphics;
@@ -22,7 +25,7 @@ export class FlightLevel extends Phaser.Scene {
   constructor() { super('flight'); }
 
   create() {
-    this.things = []; this.t = 0; this.spawnIn = 1200; this.notes = 0; this.landing = false;
+    this.things = []; this.t = 0; this.spawnIn = 1200; this.notes = 0; this.stolen = 0; this.safeUntil = 0; this.landing = false;
     const g = this.add.graphics();
     [0x5d8fc4, 0x76a3cf, 0x93b8da, 0xb1cde4].forEach((c, i) => g.fillStyle(c).fillRect(0, i * 45, VIEW_W, 45));
     this.delhi = this.add.graphics();
@@ -46,7 +49,7 @@ export class FlightLevel extends Phaser.Scene {
   update(_: number, delta: number) {
     this.t += delta;
     const progress = Math.min(1, this.t / DURATION);
-    hud.status(`Delhi ✈ Paris · ${Math.round(progress * 100)}% · notes caught: ${this.notes}`);
+    hud.status(`Delhi ✈ Paris ${Math.round(progress * 100)}% · ♪ yours: ${this.notes} · ⚡ storm took: ${this.stolen}`);
     this.delhi.x -= delta * 0.03;
     if (progress > 0.8) this.paris.x = Math.max(200, this.paris.x - delta * 0.04);
 
@@ -65,7 +68,7 @@ export class FlightLevel extends Phaser.Scene {
       thing.obj.x -= delta * 0.1;
       const hit = Math.abs(thing.obj.x - this.plane.x) < 16 && Math.abs(thing.obj.y - this.plane.y) < 10;
       if (hit && !thing.storm) { this.notes++; this.remove(thing); }
-      else if (hit) { this.cameras.main.shake(200, 0.01); hud.say('Turbulence. Steer around the dark clouds.'); this.remove(thing); }
+      else if (hit && this.t > this.safeUntil) { this.thunder(thing); this.remove(thing); }
       else if (thing.obj.x < -20) this.remove(thing);
     }
   }
@@ -81,11 +84,32 @@ export class FlightLevel extends Phaser.Scene {
     this.things.push({ obj: this.add.container(VIEW_W + 20, y, [g]), storm });
   }
 
+  /** Lightning strikes: the plane rattles, and the storm takes up to two of your notes. */
+  private thunder(cloud: Thing) {
+    const taken = Math.min(2, this.notes);
+    this.notes -= taken;
+    this.stolen += taken;
+    this.safeUntil = this.t + 1200;
+    const bolt = this.add.graphics().setDepth(6).lineStyle(2, 0xfff3b0);
+    let x = cloud.obj.x, y = cloud.obj.y + 6;
+    bolt.beginPath().moveTo(x, y);
+    while (y < this.plane.y - 4) { x += (this.plane.x - x) / 3 + (Math.random() * 8 - 4); y += 7; bolt.lineTo(x, y); }
+    bolt.lineTo(this.plane.x, this.plane.y).strokePath();
+    this.tweens.add({ targets: bolt, alpha: 0, duration: 350, onComplete: () => bolt.destroy() });
+    this.cameras.main.flash(120, 255, 250, 220).shake(400, 0.015);
+    this.tweens.add({ targets: this.plane, angle: { from: -12, to: 12 }, yoyo: true, repeat: 4, duration: 50, onComplete: () => this.plane.setAngle(0) });
+    this.tweens.add({ targets: this.plane, alpha: 0.3, yoyo: true, repeat: 5, duration: 100, onComplete: () => this.plane.setAlpha(1) });
+    void audio.thunder();
+    hud.say(taken ? `Lightning! The storm took ${taken} of your notes.` : 'Lightning! Nothing to lose yet, but steer clear.');
+  }
+
   private remove(thing: Thing) { thing.obj.destroy(); this.things = this.things.filter(t => t !== thing); }
 
   private land() {
     this.landing = true;
-    hud.say(`Landing in Paris. ${this.notes} notes caught on the way.`);
+    hud.say(this.notes > this.stolen
+      ? `Landing in Paris with ${this.notes} notes. The storm only got ${this.stolen}.`
+      : `Landing in Paris. The storm took ${this.stolen} notes and you kept ${this.notes}. Rough flight.`);
     hud.prompt('');
     this.time.delayedCall(2500, () => hud.card(this.stage, () => {
       done.add(this.stage.id);

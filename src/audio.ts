@@ -77,6 +77,20 @@ export class DemoAudio {
     this.nodes.push(osc);
   }
 
+  /** A short crack and rumble of thunder. */
+  async thunder() {
+    const ctx = await this.ready();
+    if (!ctx) return;
+    const now = ctx.currentTime, data = ctx.createBuffer(1, ctx.sampleRate * 1.2, ctx.sampleRate);
+    const v = data.getChannelData(0);
+    for (let i = 0; i < v.length; i++) v[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.35));
+    const src = ctx.createBufferSource(), filter = ctx.createBiquadFilter(), gain = ctx.createGain();
+    src.buffer = data; filter.type = 'lowpass'; filter.frequency.value = 500; gain.gain.value = 0.25;
+    src.connect(filter).connect(gain).connect(ctx.destination);
+    src.start(now);
+    this.nodes.push(src);
+  }
+
   private async ready() {
     if (!this.enabled) return null;
     this.stop();
