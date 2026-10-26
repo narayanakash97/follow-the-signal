@@ -11,7 +11,7 @@ body { font: 18px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans
 #say.pop { animation: pop 0.28s ease-out; }
 @keyframes pop { from { transform: translateY(-8px) scale(0.97); opacity: 0.4; } to { transform: none; opacity: 1; } }
 #prompt { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 8px 16px;
-  background: #e4b367; color: #1b1a21; font-weight: 700; font-size: 19px; border-radius: 8px; white-space: nowrap; box-shadow: 0 6px 20px rgb(0 0 0 / 0.45); }
+  background: #e4b367; color: #1b1a21; font-weight: 700; font-size: 19px; border-radius: 8px; width: max-content; max-width: 90vw; text-align: center; box-shadow: 0 6px 20px rgb(0 0 0 / 0.45); }
 #card, #start { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(560px, 90vw);
   padding: 28px 32px; background: #f1eee5; color: #22201c; border-radius: 10px; box-shadow: 0 10px 40px rgb(0 0 0 / 0.5); }
 #card h2, #start h1 { margin: 0 0 4px; }

@@ -3,78 +3,78 @@ import { stages } from '../../stages';
 import { Room, FLOOR, ROOM_W, type Spot } from '../room';
 import * as hud from '../hud';
 
-// COP28: interference is creeping onto one podium's wireless. Find it and switch to backup before broadcast.
-const colours = [0xe0483e, 0x3d8fd6, 0x7fd18b, 0xe4b367];
-const names = ['red', 'blue', 'green', 'yellow'];
-const LIMIT = 40_000;
+// COP28: eight podiums on wireless. Interference creeps onto one, then another. Catch both before broadcast.
+const N = 8;
 
 export class Cop28Level extends Room {
   stage = stages.find(s => s.id === 'cop28')!;
-  intro = 'COP28, Dubai. Four podiums go live in 40 seconds. Something is creeping onto the wireless. Find it before broadcast.';
+  intro = 'COP28, Dubai. Eight podiums go live in 45 seconds. The RF monitor shows one bar per podium, 1 to 8 from left to right. Watch it, and switch any podium in trouble to its backup.';
+  limit = 45_000;
+  outOfTime = 'Interference reached the broadcast feed.';
   spots: Spot[] = [
-    { id: 'podiums', x: 60, label: 'check the podiums', markerY: 100 },
-    { id: 'rf', x: 160, label: 'read the RF monitor', markerY: 76 },
-    { id: 'backup', x: 260, label: 'backup receiver rack', markerY: 92 },
+    { id: 'podiums', x: 60, label: 'Podiums 1 to 8', markerY: 100 },
+    { id: 'rf', x: 170, label: 'RF monitor', markerY: 70 },
+    { id: 'backup', x: 270, label: 'Backup receivers · 1 to 8 switch a podium', markerY: 92 },
   ];
   private bad = 0;
-  private seen = false;
-  private left = LIMIT;
+  private caught = 0;
   private bars: Phaser.GameObjects.Rectangle[] = [];
+  private growth = 0;
 
   constructor() { super('cop28'); }
 
-  protected reset() { this.bad = Phaser.Math.Between(0, 3); this.seen = false; this.left = LIMIT; this.bars = []; }
+  protected reset() { this.bad = Phaser.Math.Between(0, N - 1); this.caught = 0; this.bars = []; this.growth = 0; }
 
-  protected hint(s: Spot) {
-    return s.id === 'backup' ? 'Switch a podium to its backup: 1 red · 2 blue · 3 green · 4 yellow' : super.hint(s);
-  }
+  protected hint(s: Spot) { return s.id === 'backup' ? s.label : `${s.label} · E`; }
 
   protected use(id: string) {
-    if (id === 'podiums') return hud.say('All four mics sound fine right now. Whatever is coming has not reached the audio yet.');
-    if (id === 'rf') { this.seen = true; return hud.say(`The ${names[this.bad]} podium's frequency has a rising spike from another transmitter. It will break up soon.`); }
-    hud.say('Press 1 to 4 to switch that podium to its backup frequency.');
+    if (id === 'podiums') return hud.say('Every mic sounds fine from here. Whatever is coming has not reached the audio yet.');
+    if (id === 'rf') return hud.say('One frequency is climbing. Count across the screen to see which podium it belongs to.');
+    hud.say('Press 1 to 8 to switch that podium to its backup frequency.');
   }
 
   protected choose(key: string) {
-    if (this.near?.id !== 'backup' || !'1234'.includes(key)) return;
     const pick = Number(key) - 1;
-    if (!this.seen) return hud.say('Which podium? Read the RF monitor before switching anything live.');
-    if (pick !== this.bad) return hud.say(`The ${names[pick]} podium was clean. Switching it caused a click on air. The clock is still running.`);
+    if (this.near?.id !== 'backup' || !(pick >= 0 && pick < N)) return;
+    if (pick !== this.bad) {
+      this.penalty(5_000);
+      return hud.say(`Podium ${pick + 1} was clean. Switching it put a click on air. Minus 5 seconds.`);
+    }
+    this.bars[this.bad].setScale(1, 1).setFillStyle(0x7fd18b);
+    this.caught++;
+    if (this.caught === 1) {
+      const prev = this.bad;
+      do this.bad = Phaser.Math.Between(0, N - 1); while (this.bad === prev);
+      this.growth = 0;
+      return hud.say(`Podium ${pick + 1} is on backup. Then the screen moves again: a second frequency is starting to climb.`);
+    }
     this.over = true;
-    this.bars[this.bad].setFillStyle(colours[this.bad]).setScale(1, 1);
-    hud.status(`${this.stage.place} · switched with ${Math.ceil(this.left / 1000)}s to spare`);
-    hud.say(`Switched. The ${names[pick]} podium is on its backup frequency, and the broadcast feed stays clean.`);
-    this.time.delayedCall(1800, () => this.finish());
+    hud.say(`Both caught with ${Math.ceil(this.left / 1000)}s to spare. The broadcast feed never heard a thing.`);
+    this.time.delayedCall(2400, () => this.finish());
   }
 
   protected tick(delta: number) {
-    this.left -= delta;
-    hud.status(`${this.stage.place} · broadcast in ${Math.max(0, Math.ceil(this.left / 1000))}s`);
-    this.bars[this.bad].setScale(1, 1 + (1 - this.left / LIMIT) * 2.5).setFillStyle(this.left < LIMIT * 0.6 ? 0xffffff : colours[this.bad]);
-    if (this.left > 0) return;
-    this.over = true;
-    hud.say('The interference reached the broadcast. Prepared backups only help if you spot the problem first. Trying again.');
-    this.time.delayedCall(2500, () => this.scene.restart());
+    this.growth = Math.min(1, this.growth + delta / 14_000);
+    this.bars.forEach((b, i) => {
+      if (i === this.bad) b.setScale(1, 1 + this.growth * 3).setFillStyle(this.growth > 0.5 && Math.floor(this.time.now / 200) % 2 ? 0xffffff : 0xe0483e);
+      else if (b.fillColor !== 0x7fd18b) b.setScale(1, 1 + Math.abs(Math.sin(this.time.now / 400 + i)) * 0.4);
+    });
   }
 
   protected draw(g: Phaser.GameObjects.Graphics) {
     g.fillStyle(0xf4f1ea).fillRect(0, 0, ROOM_W, FLOOR);
     g.fillStyle(0x2a9d8f).fillRect(0, 0, ROOM_W, 14);
     g.fillStyle(0xd9d3c4).fillRect(0, FLOOR, ROOM_W, 30);
-    // Four podiums, one colour each.
-    colours.forEach((c, i) => {
-      const x = 22 + i * 26;
-      g.fillStyle(0x5a5f66).fillRect(x, 118, 16, 32);
-      g.fillStyle(c).fillRect(x, 118, 16, 4);
-      g.fillStyle(0x30333a).fillRect(x + 7, 108, 2, 10);
-    });
-    // RF monitor: one bar per podium frequency.
-    g.fillStyle(0x1e1d23).fillRect(130, 84, 60, 40);
-    g.fillStyle(0x0f1418).fillRect(133, 87, 54, 34);
-    g.fillStyle(0x3a2c22).fillRect(156, 124, 8, 26);
-    this.bars = colours.map((c, i) => this.add.rectangle(140 + i * 13, 119, 8, 8, c).setOrigin(0.5, 1));
-    // Backup rack.
-    g.fillStyle(0x1e1d23).fillRect(248, 100, 26, 50);
-    colours.forEach((c, i) => g.fillStyle(c).fillRect(252, 106 + i * 10, 18, 4));
+    for (let i = 0; i < N; i++) {
+      const x = 8 + i * 14;
+      g.fillStyle(0x5a5f66).fillRect(x, 120, 11, 30);
+      g.fillStyle(0x30333a).fillRect(x + 5, 110, 1, 10);
+    }
+    g.fillStyle(0x1e1d23).fillRect(128, 78, 84, 48);
+    g.fillStyle(0x0f1418).fillRect(131, 81, 78, 42);
+    g.fillStyle(0x3a2c22).fillRect(166, 126, 8, 24);
+    this.bars = Array.from({ length: N }, (_, i) => this.add.rectangle(137 + i * 9.5, 120, 6, 6, 0x6fc7d6).setOrigin(0.5, 1));
+    g.fillStyle(0x1e1d23).fillRect(256, 96, 28, 54);
+    for (let i = 0; i < N; i++) g.fillStyle(0x7fd18b).fillRect(260, 100 + i * 6, 20, 3);
   }
 }

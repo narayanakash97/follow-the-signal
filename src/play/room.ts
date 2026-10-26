@@ -7,7 +7,7 @@ import * as hud from './hud';
 export const FLOOR = 150, ROOM_W = 320;
 export type Spot = { id: string; x: number; label: string; markerY?: number };
 /** Every room has a way out at its right-hand end. */
-const EXIT: Spot = { id: 'exit', x: 312, label: 'leave by the door', markerY: 104 };
+const EXIT: Spot = { id: 'exit', x: 312, label: 'Door to the street', markerY: 104 };
 
 /**
  * A room you walk through and use things in. Each level draws its room,
@@ -17,6 +17,12 @@ export abstract class Room extends Phaser.Scene {
   protected player!: Phaser.GameObjects.Image;
   protected near: Spot | null = null;
   protected over = false;
+  /** When true, ← → are left for the level (e.g. an EQ) instead of walking. */
+  protected frozen = false;
+  /** Countdown in ms; 0 means no clock. */
+  protected limit = 0;
+  protected left = 0;
+  protected outOfTime = 'Out of time.';
   private marker!: Phaser.GameObjects.Triangle;
   private walkClock = 0;
 
@@ -28,13 +34,15 @@ export abstract class Room extends Phaser.Scene {
   protected choose(_key: string): void {}
   protected tick(_delta: number): void {}
   protected reset(): void {}
-  /** Prompt shown when standing at a spot. */
-  protected hint(spot: Spot) { return `E: ${spot.label}`; }
+  /** Prompt shown when standing at a spot. Names the thing; working out what to do is the game. */
+  protected hint(spot: Spot) { return `${spot.label} · E`; }
 
   create() {
     ensureTextures(this);
     this.over = false;
+    this.frozen = false;
     this.near = null;
+    this.left = this.limit;
     this.reset();
     this.draw(this.add.graphics());
     drawDoor(this.add.graphics());
@@ -53,7 +61,7 @@ export abstract class Room extends Phaser.Scene {
   }
 
   update(_: number, delta: number) {
-    const dir = hud.cardOpen() ? 0 : (input.right ? 1 : 0) - (input.left ? 1 : 0);
+    const dir = hud.cardOpen() || this.frozen ? 0 : (input.right ? 1 : 0) - (input.left ? 1 : 0);
     input.jump = false;
     if (dir) {
       this.player.x = Phaser.Math.Clamp(this.player.x + dir * 70 * delta / 1000, 10, ROOM_W - 10);
@@ -68,7 +76,23 @@ export abstract class Room extends Phaser.Scene {
       this.marker.setVisible(!!near);
       this.refreshPrompt();
     }
-    if (!this.over) this.tick(delta);
+    if (this.over) return;
+    if (this.limit) {
+      this.left -= delta;
+      hud.status(`${this.stage.place} · ${Math.max(0, Math.ceil(this.left / 1000))}s left`);
+      if (this.left <= 0) return this.fail(this.outOfTime);
+    }
+    this.tick(delta);
+  }
+
+  /** Costs time for a wrong move. */
+  protected penalty(ms: number) { if (this.limit) this.left -= ms; }
+
+  protected fail(text: string) {
+    this.over = true;
+    this.frozen = false;
+    hud.say(`${text} Trying again.`);
+    this.time.delayedCall(2500, () => this.scene.restart());
   }
 
   protected refreshPrompt() {

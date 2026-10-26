@@ -56,24 +56,24 @@ export class DemoAudio {
     [196, 247, 294, 392, 494].forEach((f, i) => this.note(ctx, f, ctx.currentTime + i * 0.035, 1.6, 'triangle', 0.03));
   }
 
-  /** A synthetic "voice": a gliding buzz. With glitch, the pitch jumps mid-phrase. */
-  async voice(glitch: boolean) {
+  /** A synthetic "voice": a gliding buzz. glitch jumps in pitch mid-phrase; rushed squeezes the timing. */
+  async voice(kind: 'clean' | 'glitch' | 'rushed') {
     const ctx = await this.ready();
     if (!ctx) return;
-    const now = ctx.currentTime;
+    const now = ctx.currentTime, k = kind === 'rushed' ? 0.55 : 1;
     const osc = ctx.createOscillator(), filter = ctx.createBiquadFilter(), gain = ctx.createGain();
     osc.type = 'sawtooth';
     osc.frequency.setValueAtTime(140, now);
-    osc.frequency.linearRampToValueAtTime(180, now + 0.5);
-    if (glitch) { osc.frequency.setValueAtTime(320, now + 0.55); osc.frequency.setValueAtTime(170, now + 0.7); }
-    osc.frequency.linearRampToValueAtTime(120, now + 1.2);
+    osc.frequency.linearRampToValueAtTime(180, now + 0.5 * k);
+    if (kind === 'glitch') { osc.frequency.setValueAtTime(320, now + 0.55); osc.frequency.setValueAtTime(170, now + 0.7); }
+    osc.frequency.linearRampToValueAtTime(120, now + 1.2 * k);
     filter.type = 'lowpass'; filter.frequency.value = 900;
     gain.gain.setValueAtTime(0, now);
     gain.gain.linearRampToValueAtTime(0.06, now + 0.05);
-    gain.gain.setValueAtTime(0.06, now + 1.1);
-    gain.gain.linearRampToValueAtTime(0, now + 1.25);
+    gain.gain.setValueAtTime(0.06, now + 1.1 * k);
+    gain.gain.linearRampToValueAtTime(0, now + 1.25 * k);
     osc.connect(filter).connect(gain).connect(ctx.destination);
-    osc.start(now); osc.stop(now + 1.3);
+    osc.start(now); osc.stop(now + 1.3 * k);
     this.nodes.push(osc);
   }
 

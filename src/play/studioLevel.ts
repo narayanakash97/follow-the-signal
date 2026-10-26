@@ -11,10 +11,11 @@ const stage = stages.find(s => s.id === 'squarewave')!;
 let state = initialState();
 let near: Station | null = null;
 
-const primary: Record<Exclude<Station, 'desk'>, Action> = { brief: 'read', fan: 'fan', window: 'quiet', mic: 'record' };
+const primary: Record<Exclude<Station, 'desk'>, Action> = { brief: 'read', fan: 'fan', window: 'quiet', mic: 'record', power: 'ground' };
 const labels: Record<Station, string> = {
-  brief: 'E: read the brief', fan: 'E: switch the fan', window: 'E: ask the site crew for a quiet window',
-  mic: 'E: record a take', desk: '1: listen back · 2: clean it up in post · 3: deliver to the client',
+  brief: 'Client brief · E', fan: 'Fan · E switch', window: 'Window onto the building site · E talk to the crew',
+  mic: 'Mic booth · E record', power: 'Power strip · E re-plug the desk and preamp onto it',
+  desk: 'Mixing desk · 1 listen back · 2 clean up in post · 3 deliver',
 };
 
 export const studio = new StudioScene({
@@ -25,7 +26,7 @@ export const studio = new StudioScene({
     input.handler = onKey;
     hud.where(stage);
     hud.prompt(WALK);
-    hud.say('Square Wave Studios. A client needs a speech recording. Start with the brief on the wall.');
+    hud.say('Square Wave Studios. A client needs a clean speech recording. Read the brief, then listen for everything that could ruin it.');
   },
   near(station) {
     near = station;

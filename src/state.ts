@@ -1,21 +1,23 @@
-export type Station = 'brief' | 'fan' | 'window' | 'mic' | 'desk';
-export type Take = { fan: boolean; construction: boolean; processed: boolean };
+export type Station = 'brief' | 'fan' | 'window' | 'mic' | 'power' | 'desk';
+export type Take = { fan: boolean; construction: boolean; hum: boolean; processed: boolean };
 export type StudioState = {
   briefRead: boolean;
   fan: boolean;
   construction: boolean;
+  hum: boolean;
   take: Take | null;
   delivered: boolean;
 };
-export type Action = 'read' | 'fan' | 'quiet' | 'record' | 'process' | 'deliver';
+export type Action = 'read' | 'fan' | 'quiet' | 'ground' | 'record' | 'process' | 'deliver';
 export const initialState = (): StudioState => ({
-  briefRead: false, fan: true, construction: true, take: null, delivered: false,
+  briefRead: false, fan: true, construction: true, hum: true, take: null, delivered: false,
 });
 export function issues(take: Take | null): string[] {
   if (!take) return ['Record a take first.'];
   return [
     ...(take.fan ? ['The fan was running during this take.'] : []),
     ...(take.construction ? ['Construction was active during this take.'] : []),
+    ...(take.hum ? ['A low 50 Hz hum runs under the whole take.'] : []),
     ...(take.processed ? ['This take was processed. The brief asks for raw audio.'] : []),
   ];
 }
@@ -32,9 +34,12 @@ export function act(state: StudioState, action: Action): { state: StudioState; m
     case 'quiet':
       next.construction = false;
       return { state: next, message: 'A quiet window is arranged with the crew next door. Now make a fresh recording.' };
+    case 'ground':
+      next.hum = false;
+      return { state: next, message: 'The desk and the preamp were on different wall sockets: a ground loop. Both now share one power strip. The hum is gone from the room.' };
     case 'record':
       if (!state.briefRead) return { state, message: 'Read the client brief before recording. It defines what this session needs.' };
-      next.take = { fan: state.fan, construction: state.construction, processed: false };
+      next.take = { fan: state.fan, construction: state.construction, hum: state.hum, processed: false };
       return { state: next, message: issues(next.take).length ? 'Take recorded. It is raw, but room noise is captured too. Inspect the take at the desk.' : 'Fresh raw take recorded in the quiet room. Check it at the desk, then deliver.' };
     case 'process':
       if (!state.take) return { state, message: 'There is no take to process yet. Visit the microphone to record one.' };

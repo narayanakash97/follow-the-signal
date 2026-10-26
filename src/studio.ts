@@ -9,6 +9,7 @@ export const stations: { id: Station; x: number; label: string }[] = [
   { id: 'fan', x: 94, label: 'Fan' },
   { id: 'window', x: 158, label: 'Window' },
   { id: 'mic', x: 224, label: 'Mic booth' },
+  { id: 'power', x: 250, label: 'Power strip' },
   { id: 'desk', x: 272, label: 'Mixing desk' },
 ];
 const REACH = 14, SPEED = 70;
@@ -168,6 +169,9 @@ export class StudioScene extends Phaser.Scene {
     g.lineStyle(1, 0x55595f).strokeCircle(215, 102, 5);
     this.rec = this.add.circle(225, 32, 3, 0xe0483e).setAlpha(0.25);
 
+    // Power strip on the floor; two plugs run to different wall sockets.
+    g.fillStyle(0xe8e4da).fillRect(244, 144, 14, 4);
+    g.lineStyle(1, 0x1b1a21).lineBetween(246, 144, 240, 120).lineBetween(256, 144, 262, 118);
     // Mixing desk with monitor.
     g.fillStyle(0x1e1d23).fillRect(250, 86, 46, 30);
     g.fillStyle(0x0f1418).fillRect(252, 88, 42, 26);
@@ -195,4 +199,4 @@ export class StudioScene extends Phaser.Scene {
   }
 }
 
-const markerY: Record<Station, number> = { brief: 68, fan: 92, window: 36, mic: 82, desk: 76 };
+const markerY: Record<Station, number> = { brief: 68, fan: 92, window: 36, mic: 82, power: 130, desk: 76 };
