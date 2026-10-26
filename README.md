@@ -2,6 +2,8 @@
 
 A playable career portfolio for Akash Narayan. Two pages: the portfolio (`index.html`) and a full-screen laptop game (`play.html`). The game is one walkable world from Delhi to Paris with nine playable stops, including a flight you steer.
 
+**Live:** https://narayanakash97.github.io/follow-the-signal/ (every push to `main` republishes it through `.github/workflows/pages.yml`).
+
 ## Open it on your Mac
 
 1. Open the **Terminal** app (press `Cmd + Space`, type `Terminal`, press Enter).
