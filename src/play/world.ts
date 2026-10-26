@@ -54,6 +54,7 @@ export class WorldScene extends Phaser.Scene {
     this.near = null;
     hud.prompt('');
     hud.say('');
+    hud.showQueuedEnding();
   }
 
   update(_: number, delta: number) {

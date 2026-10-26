@@ -21,7 +21,7 @@ export function say(text: string) {
   el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
 }
 
-export const cardOpen = () => !$('card').hidden;
+export const cardOpen = () => !$('card').hidden || !$('end').hidden;
 
 /** Shows a story card and hands the keyboard to it until Enter or Escape. */
 export function card(stage: Stage, onClose: () => void) {
@@ -38,3 +38,19 @@ export function card(stage: Stage, onClose: () => void) {
     onClose();
   };
 }
+
+/** The closing screen after the last stop. Enter goes to the portfolio, Escape returns to the game. */
+export function ending() {
+  const prev = input.handler;
+  input.left = input.right = false;
+  $('end').hidden = false;
+  input.handler = key => {
+    if (key === 'Enter') location.href = ($('to-portfolio') as HTMLAnchorElement).href;
+    else if (key === 'Escape') { $('end').hidden = true; input.handler = prev; }
+  };
+}
+
+let endingQueued = false;
+/** Ask for the closing screen once the street has loaded and taken the keyboard. */
+export function queueEnding() { endingQueued = true; }
+export function showQueuedEnding() { if (endingQueued) { endingQueued = false; ending(); } }

@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import type { Stage } from '../stages';
+import { stages, type Stage } from '../stages';
 import { input } from './input';
 import { done, ensureTextures } from './world';
 import * as hud from './hud';
@@ -101,7 +101,11 @@ export abstract class Room extends Phaser.Scene {
 
   protected finish() {
     this.over = true;
-    hud.card(this.stage, () => { done.add(this.stage.id); this.leave(); });
+    hud.card(this.stage, () => {
+      done.add(this.stage.id);
+      if (this.stage.id === stages[stages.length - 1].id) hud.queueEnding();
+      this.leave();
+    });
   }
 
   protected leave() { this.scene.start('world', { x: this.stage.x }); }
