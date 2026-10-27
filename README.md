@@ -4,6 +4,10 @@ A playable career portfolio for Akash Narayan. Two pages: the portfolio (`index.
 
 **Live:** https://narayanakash97.github.io/follow-the-signal/ (every push to `main` republishes it through `.github/workflows/pages.yml`).
 
+## Credit
+
+This project started from Paul Deveau's playable résumé: [deveaup.github.io](https://deveaup.github.io/#/play) ([source on GitHub](https://github.com/DeveauP/DeveauP.github.io)). Several things come from studying his repository: the idea of a career you can play, tying each level to a CV entry, and the stack (Phaser, TypeScript, Vite). Thank you, Paul.
+
 ## Open it on your Mac
 
 1. Open the **Terminal** app (press `Cmd + Space`, type `Terminal`, press Enter).
